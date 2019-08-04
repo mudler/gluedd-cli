@@ -5,7 +5,7 @@ import (
 	"github.com/mudler/gluedd/pkg/resource"
 	"encoding/hex"
 	"math/rand"
-	
+	"fmt"
 	"path/filepath"
 )
 
@@ -32,7 +32,10 @@ func (l *JpegStreamer) Listen() chan string {
 	go func() {
 		for {
 asset:=TempFileName("predict",".jpg")
-			assetstore.DownloadFile(filepath.Join(l.Store,asset), l.StreamUrl)
+			err:=assetstore.DownloadFile(filepath.Join(l.Store,asset), l.StreamUrl)
+			if err != nil {
+				fmt.Println("error downloading stream file")
+			}
 
 			files <- l.BaseUrl+asset
 
