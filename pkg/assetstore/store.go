@@ -36,7 +36,7 @@ func (a *AssetStore) Run() {
 		}
 		http.ServeContent(ctx.Resp, ctx.Req.Request, ctx.Req.URL.Path, fi.ModTime(), f)
 	})
-	go m.Run()
+	m.Run()
 }
 
 func ServeFuzzy(search, dir string) (*os.File, error) {
