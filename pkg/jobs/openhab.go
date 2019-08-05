@@ -5,15 +5,19 @@ import (
 	"strings"
 	"time"
 	"bytes"
+	"path"
+	"path/filepath"
+	"os"
 	"fmt"
 	"github.com/mudler/gluedd/pkg/api"
 	"github.com/mudler/gluedd/pkg/errand"
 )
 
 type OpenHabErrand struct {
+	WithRemoval bool
 	Prediction api.Prediction
 	URL        string
-	VehicleItem,HumanItem       string
+	AssetDir,VehicleItem,HumanItem       string
 }
 
 func (e *OpenHabErrand) UpdateItem(item, data string) error {
@@ -41,6 +45,14 @@ func (e *OpenHabErrand) UpdateItem(item, data string) error {
 func (e *OpenHabErrand) Apply() error {
 	if e.Prediction.Error != nil || len(e.Prediction.Body.Predictions) == 0 {
 		return e.Prediction.Error
+	}
+	r,err := http.NewRequest("GET", e.Prediction.Url, nil)
+	if err != nil {
+		return err
+	}
+	if e.WithRemoval {
+file := path.Base(r.URL.Path)
+os.RemoveAll(filepath.Join(e.AssetDir,file))
 	}
 	person := false
 	vehicle :=false
@@ -91,12 +103,14 @@ func (e *OpenHabErrand) Generate(d api.Detector) *api.Prediction {
 
 type OpenHabGenerator struct{
 	URL        string
-	VehicleItem,HumanItem       string
+	AssetDir,VehicleItem,HumanItem       string
+	WithRemoval bool
+	
 }
 
-func NewOpenHabGenerator(OpenHabURL, VehicleItem, HumanItem string) errand.ErrandGenerator {
-	return &OpenHabGenerator{URL:OpenHabURL , VehicleItem: VehicleItem, HumanItem: HumanItem}
+func NewOpenHabGenerator(OpenHabURL, VehicleItem, HumanItem,AssetDir string, Remove bool) errand.ErrandGenerator {
+	return &OpenHabGenerator{URL:OpenHabURL , VehicleItem: VehicleItem, HumanItem: HumanItem, AssetDir:AssetDir, WithRemoval: Remove}
 }
 func (l *OpenHabGenerator) GenerateErrand(p api.Prediction) errand.Errand {
-	return &OpenHabErrand{Prediction: p,URL:l.URL , VehicleItem: l.VehicleItem, HumanItem: l.HumanItem}
+	return &OpenHabErrand{Prediction: p,URL:l.URL , VehicleItem: l.VehicleItem, HumanItem: l.HumanItem, AssetDir:l.AssetDir, WithRemoval: l.WithRemoval }
 }
