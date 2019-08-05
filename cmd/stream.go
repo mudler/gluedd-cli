@@ -28,7 +28,7 @@ var streamCmd = &cobra.Command{
 		}
 		
 		//errandgen := errand.NewDefaultErrandGenerator()
-		errandgen := generators.NewDummyGenerator()
+		errandgen := generators.NewDebugGenerator()
 		predictor := predictor.NewPredictor(dd, types.NewJpegStreamer(viper.GetString("stream_url"), viper.GetString("base_url"), viper.GetString("asset_dir")), errandgen)
 
 		//predictor := resource.NewPredictor(dd, resource.NewstreamWatcher(args[0]))
