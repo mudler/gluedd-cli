@@ -80,7 +80,7 @@ func (e *OpenHabErrand) Apply() error {
 	if e.Live {
 		go func() {
 
-			b, err := PredictionToByte(e.Prediction)
+			b, err := e.Prediction.ToByte()
 			if err != nil {
 				return
 			}

@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/mudler/gluedd-cli/pkg/jobs"
 	"github.com/pixiv/go-libjpeg/jpeg"
 
 	"github.com/mudler/gluedd/pkg/api"
@@ -64,7 +63,7 @@ var runCmd = &cobra.Command{
 		}
 		pred := dd.Detect(image)
 		pred.Explain()
-		b, err := generators.PredictionToByte(pred)
+		b, err := pred.ToByte()
 		if err != nil {
 			log.Fatalln(err.Error())
 		}
