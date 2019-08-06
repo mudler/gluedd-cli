@@ -39,6 +39,11 @@ func NewV4lStreamer(device int, StreamURL string, Width, Height int, stream *liv
 	cfg.Width = Width
 	cfg.Height = Height
 
+	// FIXME: This is a workaround - we have goroutine buffers but
+	// we need to drop some fps or we will quickly start to detect every single frame.. and we will start to detect the past.
+
+	cfg.FPS = v4l.Frac{N: uint32(1), D: uint32(Buffer)} // Dummy - Make 1/Buff FPS to ensure that cam drops some frames to avoid conjestion
+
 	// Apply config
 	err = cam.SetConfig(cfg)
 	if err != nil {
