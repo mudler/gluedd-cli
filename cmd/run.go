@@ -19,7 +19,7 @@ var runCmd = &cobra.Command{
 		if len(args) == 0 {
 			log.Fatalln("Insufficient arguments")
 		}
-		dd := api.NewDeepDetect(Server)
+		dd := api.NewDeepDetect(Server, nil)
 		if len(Service) > 0 {
 			dd.WithService(Service)
 		}

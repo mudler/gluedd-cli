@@ -3,19 +3,22 @@ package cmd
 import (
 	"github.com/mudler/gluedd-cli/pkg/jobs"
 	"github.com/mudler/gluedd-cli/pkg/resource"
+	live "github.com/saljam/mjpeg"
 
 	"github.com/mudler/gluedd/pkg/api"
 	"github.com/mudler/gluedd/pkg/errand"
 	"github.com/mudler/gluedd/pkg/predictor"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"log"
+	"strconv"
 	"time"
 )
 
-var openhabCmd = &cobra.Command{
-	Use:   "openhab",
+var webcamCmd = &cobra.Command{
+	Use:   "webcam",
 	Short: "Starts gluedd in listen mode",
-	Long:  `Redirect jpeg stream detection to openhab item states`,
+	Long:  `Starts gluedd with the configuration`,
 	Run: func(cmd *cobra.Command, args []string) {
 		Service := viper.GetString("service")
 
@@ -25,12 +28,20 @@ var openhabCmd = &cobra.Command{
 		if len(Service) > 0 {
 			dd.WithService(Service)
 		}
+		if len(args) == 0 {
+			log.Fatalln("Insufficient arguments")
+		}
 
+		deviceID, err := strconv.Atoi(args[0])
+		if err != nil {
+			log.Fatalln("Invalid devide ID")
+		}
+		stream := live.NewStream()
 		//errandgen := errand.NewDefaultErrandGenerator()
-		errandgen := generators.NewOpenHabGenerator(viper.GetString("openhab_url"), viper.GetString("vehicle_item"), viper.GetString("person_item"), viper.GetString("asset_dir"), true)
-		predictor := predictor.NewPredictor(dd, types.NewJpegStreamer(viper.GetString("stream_url"), viper.GetString("base_url"), viper.GetString("asset_dir")), errandgen)
+		errandgen := generators.NewV4lGenerator(stream)
+		predictor := predictor.NewPredictor(dd, types.NewV4lStreamer(deviceID, viper.GetString("base_url"), 800, 600, stream), errandgen)
 
-		//predictor := resource.NewPredictor(dd, resource.NewopenhabWatcher(args[0]))
+		//predictor := resource.NewPredictor(dd, resource.NewwebcamWatcher(args[0]))
 		consumer := errand.NewErrandConsumer()
 
 		consumer.Consume(predictor.Generate())
@@ -41,5 +52,5 @@ var openhabCmd = &cobra.Command{
 }
 
 func init() {
-	RootCmd.AddCommand(openhabCmd)
+	RootCmd.AddCommand(webcamCmd)
 }

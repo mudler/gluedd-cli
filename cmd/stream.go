@@ -21,7 +21,7 @@ var streamCmd = &cobra.Command{
 
 		Server := viper.GetString("api_server")
 
-		dd := api.NewDeepDetect(Server)
+		dd := api.NewDeepDetect(Server, nil)
 		if len(Service) > 0 {
 			dd.WithService(Service)
 		}
