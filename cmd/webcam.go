@@ -39,7 +39,7 @@ var webcamCmd = &cobra.Command{
 		stream := live.NewStream()
 		//errandgen := errand.NewDefaultErrandGenerator()
 		errandgen := generators.NewV4lGenerator(stream)
-		predictor := predictor.NewPredictor(dd, types.NewV4lStreamer(deviceID, viper.GetString("base_url"), 800, 600, stream), errandgen)
+		predictor := predictor.NewPredictor(dd, types.NewV4lStreamer(deviceID, viper.GetString("base_url"), viper.GetInt("webcam_width"), viper.GetInt("webcam_height"), stream), errandgen)
 
 		//predictor := resource.NewPredictor(dd, resource.NewwebcamWatcher(args[0]))
 		consumer := errand.NewErrandConsumer()
