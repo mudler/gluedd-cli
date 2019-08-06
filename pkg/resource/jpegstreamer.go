@@ -33,13 +33,14 @@ func (l *JpegStreamer) Listen() chan string {
 	go func() {
 		for {
 
-			timeout := time.Duration(5 * time.Second)
+			timeout := time.Duration(2 * time.Second)
 			client := http.Client{
 				Timeout: timeout,
 			}
 			// Get the data
 			resp, err := client.Get(l.StreamUrl)
 			if err != nil {
+				time.Sleep(2 * time.Second)
 				continue
 			}
 			defer resp.Body.Close()

@@ -4,13 +4,14 @@ import (
 	"bytes"
 	"encoding/base64"
 	"errors"
+	"image"
+	"image/color"
+	"image/draw"
+
 	"github.com/mudler/gluedd/pkg/api"
 	"github.com/mudler/gluedd/pkg/errand"
 	jpeg "github.com/pixiv/go-libjpeg/jpeg"
 	live "github.com/saljam/mjpeg"
-	"image"
-	"image/color"
-	"image/draw"
 
 	"github.com/CorentinB/gobbox"
 )
@@ -22,26 +23,23 @@ type V4lErrand struct {
 	Stream     *live.Stream
 }
 
-func (e *V4lErrand) Apply() error {
-	if e.Prediction.Error != nil || len(e.Prediction.Body.Predictions) == 0 {
-		return e.Prediction.Error
-	}
-	unbased, err := base64.StdEncoding.DecodeString(e.Prediction.Url)
+func PredictionToByte(e api.Prediction) ([]byte, error) {
+	unbased, err := base64.StdEncoding.DecodeString(e.Url)
 	if err != nil {
-		return err
+		return []byte{}, err
 	}
 	img, err := jpeg.Decode(bytes.NewReader(unbased), &jpeg.DecoderOptions{})
 	if err != nil {
-		return err
+		return []byte{}, err
 	}
-	if len(e.Prediction.Body.Predictions) != 0 {
+	if len(e.Body.Predictions) != 0 {
 		// Convert to RGBA
 		b := img.Bounds()
 		imgRGBA := image.NewRGBA(image.Rect(0, 0, b.Dx(), b.Dy()))
 		draw.Draw(imgRGBA, imgRGBA.Bounds(), img, b.Min, draw.Src)
 
-		for i, _ := range e.Prediction.Body.Predictions[0].Classes {
-			imgRGBA = writeBoundingBox(img, e.Prediction, i)
+		for i, _ := range e.Body.Predictions[0].Classes {
+			imgRGBA = writeBoundingBox(img, e, i)
 			img = imgRGBA
 		}
 
@@ -49,13 +47,32 @@ func (e *V4lErrand) Apply() error {
 		if imgRGBA != nil {
 			err := jpeg.Encode(buf, imgRGBA, &jpeg.EncoderOptions{Quality: 50})
 			if err == nil {
-				go e.Stream.UpdateJPEG(buf.Bytes())
+				return buf.Bytes(), nil
 			} else {
-				return errors.New("Can't encode frame to live stream.")
+				return []byte{}, nil
 			}
 		}
 
 	}
+
+	return []byte{}, nil
+}
+
+func (e *V4lErrand) Apply() error {
+	if e.Prediction.Error != nil || len(e.Prediction.Body.Predictions) == 0 {
+		return e.Prediction.Error
+	}
+
+	if len(e.Prediction.Body.Predictions) != 0 {
+		b, err := PredictionToByte(e.Prediction)
+		if err != nil {
+			return err
+		}
+		go e.Stream.UpdateJPEG(b)
+	} else {
+		return errors.New("Can't encode frame to live stream.")
+	}
+
 	return nil
 }
 
