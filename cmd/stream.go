@@ -30,7 +30,7 @@ var streamCmd = &cobra.Command{
 
 		//errandgen := errand.NewDefaultErrandGenerator()
 		errandgen := generators.NewDebugGenerator()
-		predictor := predictor.NewPredictor(dd, types.NewJpegStreamer(viper.GetString("stream_url"), viper.GetString("base_url"), stream, false), errandgen)
+		predictor := predictor.NewPredictor(dd, types.NewJpegStreamer(viper.GetString("stream_url"), viper.GetString("base_url"), stream, false, viper.GetInt("buffer_size")), errandgen)
 
 		//predictor := resource.NewPredictor(dd, resource.NewstreamWatcher(args[0]))
 		consumer := errand.NewErrandConsumer()

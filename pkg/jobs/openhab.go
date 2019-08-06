@@ -3,7 +3,6 @@ package generators
 import (
 	"bytes"
 	"encoding/base64"
-	"errors"
 	"fmt"
 	"github.com/mudler/gluedd/pkg/api"
 	"github.com/mudler/gluedd/pkg/errand"
@@ -69,48 +68,50 @@ func (e *OpenHabErrand) Apply() error {
 			person = true
 		}
 	}
-
-	if vehicle {
-		go e.UpdateItem(e.VehicleItem, "ON")
-	} else {
-		go e.UpdateItem(e.VehicleItem, "OFF")
-	}
-	if person {
-		go e.UpdateItem(e.HumanItem, "ON")
-	} else {
-		go e.UpdateItem(e.HumanItem, "OFF")
-	}
+	go func() {
+		if vehicle {
+			e.UpdateItem(e.VehicleItem, "ON")
+		} else {
+			e.UpdateItem(e.VehicleItem, "OFF")
+		}
+		if person {
+			e.UpdateItem(e.HumanItem, "ON")
+		} else {
+			e.UpdateItem(e.HumanItem, "OFF")
+		}
+	}()
 	if e.Live {
-		unbased, err := base64.StdEncoding.DecodeString(e.Prediction.Url)
-		if err != nil {
-			return err
-		}
-		img, err := jpeg.Decode(bytes.NewReader(unbased), &jpeg.DecoderOptions{})
-		if err != nil {
-			return err
-		}
-		if len(e.Prediction.Body.Predictions) != 0 {
-			// Convert to RGBA
-			b := img.Bounds()
-			imgRGBA := image.NewRGBA(image.Rect(0, 0, b.Dx(), b.Dy()))
-			draw.Draw(imgRGBA, imgRGBA.Bounds(), img, b.Min, draw.Src)
+		go func() {
 
-			for i, _ := range e.Prediction.Body.Predictions[0].Classes {
-				imgRGBA = writeBoundingBox(img, e.Prediction, i)
-				img = imgRGBA
+			unbased, err := base64.StdEncoding.DecodeString(e.Prediction.Url)
+			if err != nil {
+				return
 			}
+			img, err := jpeg.Decode(bytes.NewReader(unbased), &jpeg.DecoderOptions{})
+			if err != nil {
+				return
+			}
+			if len(e.Prediction.Body.Predictions) != 0 {
+				// Convert to RGBA
+				b := img.Bounds()
+				imgRGBA := image.NewRGBA(image.Rect(0, 0, b.Dx(), b.Dy()))
+				draw.Draw(imgRGBA, imgRGBA.Bounds(), img, b.Min, draw.Src)
 
-			buf := new(bytes.Buffer)
-			if imgRGBA != nil {
-				err := jpeg.Encode(buf, imgRGBA, &jpeg.EncoderOptions{Quality: 50})
-				if err == nil {
-					go e.Stream.UpdateJPEG(buf.Bytes())
-				} else {
-					return errors.New("Can't encode frame to live stream.")
+				for i, _ := range e.Prediction.Body.Predictions[0].Classes {
+					imgRGBA = writeBoundingBox(img, e.Prediction, i)
+					img = imgRGBA
 				}
-			}
 
-		}
+				buf := new(bytes.Buffer)
+				if imgRGBA != nil {
+					err := jpeg.Encode(buf, imgRGBA, &jpeg.EncoderOptions{Quality: 50})
+					if err == nil {
+						go e.Stream.UpdateJPEG(buf.Bytes())
+					}
+				}
+
+			}
+		}()
 	}
 	return nil
 }

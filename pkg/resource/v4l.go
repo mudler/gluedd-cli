@@ -15,7 +15,7 @@ import (
 	"net/http"
 )
 
-func NewV4lStreamer(device int, StreamURL string, Width, Height int, stream *live.Stream) resource.Resource {
+func NewV4lStreamer(device int, StreamURL string, Width, Height int, stream *live.Stream, Buffer int) resource.Resource {
 	// Declare stream for web preview
 
 	devicePath := "/dev/video" + strconv.Itoa(device)
@@ -64,7 +64,7 @@ func NewV4lStreamer(device int, StreamURL string, Width, Height int, stream *liv
 		os.Exit(1)
 	}
 
-	return &V4lStreamer{DeviceID: device, StreamURL: StreamURL, Cam: cam, Stream: stream}
+	return &V4lStreamer{DeviceID: device, StreamURL: StreamURL, Cam: cam, Stream: stream, Buffer: Buffer}
 }
 
 type V4lStreamer struct {
@@ -72,10 +72,11 @@ type V4lStreamer struct {
 	StreamURL string
 	Cam       *v4l.Device
 	Stream    *live.Stream
+	Buffer    int
 }
 
 func (l *V4lStreamer) Listen() chan string {
-	files := make(chan string)
+	files := make(chan string, l.Buffer)
 
 	go http.Handle("/", l.Stream)
 	go http.ListenAndServe(l.StreamURL, nil)
@@ -107,8 +108,15 @@ func (l *V4lStreamer) Listen() chan string {
 			}
 			imageBase64 := base64.StdEncoding.EncodeToString(buffer64.Bytes())
 
-			files <- imageBase64
-
+			if l.Buffer != 0 {
+				select {
+				case files <- imageBase64:
+				default:
+					// If API is slow drop frames
+				}
+			} else {
+				files <- imageBase64
+			}
 		}
 	}()
 

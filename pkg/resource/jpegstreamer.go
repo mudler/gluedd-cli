@@ -11,8 +11,8 @@ import (
 	"time"
 )
 
-func NewJpegStreamer(url string, baseurl string, stream *live.Stream, live bool) resource.Resource {
-	return &JpegStreamer{StreamUrl: url, BaseUrl: baseurl, Stream: stream, Live: live}
+func NewJpegStreamer(url string, baseurl string, stream *live.Stream, live bool, Buffer int) resource.Resource {
+	return &JpegStreamer{StreamUrl: url, BaseUrl: baseurl, Stream: stream, Live: live, Buffer: Buffer}
 }
 
 type JpegStreamer struct {
@@ -20,11 +20,12 @@ type JpegStreamer struct {
 	BaseUrl   string
 	Stream    *live.Stream
 	Live      bool
+	Buffer    int
 }
 
 func (l *JpegStreamer) Listen() chan string {
 
-	files := make(chan string)
+	files := make(chan string, l.Buffer)
 	if l.Live {
 		go http.Handle("/", l.Stream)
 		go http.ListenAndServe(l.BaseUrl, nil)
@@ -57,8 +58,16 @@ func (l *JpegStreamer) Listen() chan string {
 				continue
 			}
 			imageBase64 := base64.StdEncoding.EncodeToString(buffer64.Bytes())
+			if l.Buffer != 0 {
 
-			files <- imageBase64
+				select {
+				case files <- imageBase64:
+				default:
+					// If API is slow drop frames
+				}
+			} else {
+				files <- imageBase64
+			}
 
 		}
 	}()
