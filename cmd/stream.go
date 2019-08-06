@@ -3,6 +3,7 @@ package cmd
 import (
 	"github.com/mudler/gluedd-cli/pkg/jobs"
 	"github.com/mudler/gluedd-cli/pkg/resource"
+	live "github.com/saljam/mjpeg"
 
 	"github.com/mudler/gluedd/pkg/api"
 	"github.com/mudler/gluedd/pkg/errand"
@@ -25,10 +26,11 @@ var streamCmd = &cobra.Command{
 		if len(Service) > 0 {
 			dd.WithService(Service)
 		}
+		stream := live.NewStream()
 
 		//errandgen := errand.NewDefaultErrandGenerator()
 		errandgen := generators.NewDebugGenerator()
-		predictor := predictor.NewPredictor(dd, types.NewJpegStreamer(viper.GetString("stream_url"), viper.GetString("base_url"), viper.GetString("asset_dir")), errandgen)
+		predictor := predictor.NewPredictor(dd, types.NewJpegStreamer(viper.GetString("stream_url"), viper.GetString("base_url"), stream, false), errandgen)
 
 		//predictor := resource.NewPredictor(dd, resource.NewstreamWatcher(args[0]))
 		consumer := errand.NewErrandConsumer()

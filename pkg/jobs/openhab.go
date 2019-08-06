@@ -2,22 +2,26 @@ package generators
 
 import (
 	"bytes"
+	"encoding/base64"
+	"errors"
 	"fmt"
 	"github.com/mudler/gluedd/pkg/api"
 	"github.com/mudler/gluedd/pkg/errand"
+	jpeg "github.com/pixiv/go-libjpeg/jpeg"
+	live "github.com/saljam/mjpeg"
+	"image"
+	"image/draw"
 	"net/http"
-	"os"
-	"path"
-	"path/filepath"
 	"strings"
 	"time"
 )
 
 type OpenHabErrand struct {
-	WithRemoval                      bool
-	Prediction                       api.Prediction
-	URL                              string
-	AssetDir, VehicleItem, HumanItem string
+	Prediction             api.Prediction
+	URL                    string
+	VehicleItem, HumanItem string
+	Stream                 *live.Stream
+	Live                   bool
 }
 
 func (e *OpenHabErrand) UpdateItem(item, data string) error {
@@ -46,14 +50,7 @@ func (e *OpenHabErrand) Apply() error {
 	if e.Prediction.Error != nil || len(e.Prediction.Body.Predictions) == 0 {
 		return e.Prediction.Error
 	}
-	r, err := http.NewRequest("GET", e.Prediction.Url, nil)
-	if err != nil {
-		return err
-	}
-	if e.WithRemoval {
-		file := path.Base(r.URL.Path)
-		os.RemoveAll(filepath.Join(e.AssetDir, file))
-	}
+
 	person := false
 	vehicle := false
 	for _, c := range e.Prediction.Body.Predictions[0].Classes {
@@ -74,25 +71,45 @@ func (e *OpenHabErrand) Apply() error {
 	}
 
 	if vehicle {
-		err := e.UpdateItem(e.VehicleItem, "ON")
-		if err != nil {
-			return err
-		}
+		go e.UpdateItem(e.VehicleItem, "ON")
 	} else {
-		err := e.UpdateItem(e.VehicleItem, "OFF")
-		if err != nil {
-			return err
-		}
+		go e.UpdateItem(e.VehicleItem, "OFF")
 	}
 	if person {
-		err := e.UpdateItem(e.HumanItem, "ON")
+		go e.UpdateItem(e.HumanItem, "ON")
+	} else {
+		go e.UpdateItem(e.HumanItem, "OFF")
+	}
+	if e.Live {
+		unbased, err := base64.StdEncoding.DecodeString(e.Prediction.Url)
 		if err != nil {
 			return err
 		}
-	} else {
-		err := e.UpdateItem(e.HumanItem, "OFF")
+		img, err := jpeg.Decode(bytes.NewReader(unbased), &jpeg.DecoderOptions{})
 		if err != nil {
 			return err
+		}
+		if len(e.Prediction.Body.Predictions) != 0 {
+			// Convert to RGBA
+			b := img.Bounds()
+			imgRGBA := image.NewRGBA(image.Rect(0, 0, b.Dx(), b.Dy()))
+			draw.Draw(imgRGBA, imgRGBA.Bounds(), img, b.Min, draw.Src)
+
+			for i, _ := range e.Prediction.Body.Predictions[0].Classes {
+				imgRGBA = writeBoundingBox(img, e.Prediction, i)
+				img = imgRGBA
+			}
+
+			buf := new(bytes.Buffer)
+			if imgRGBA != nil {
+				err := jpeg.Encode(buf, imgRGBA, &jpeg.EncoderOptions{Quality: 50})
+				if err == nil {
+					go e.Stream.UpdateJPEG(buf.Bytes())
+				} else {
+					return errors.New("Can't encode frame to live stream.")
+				}
+			}
+
 		}
 	}
 	return nil
@@ -104,14 +121,15 @@ func (e *OpenHabErrand) Generate(d api.Detector) *api.Prediction {
 }
 
 type OpenHabGenerator struct {
-	URL                              string
-	AssetDir, VehicleItem, HumanItem string
-	WithRemoval                      bool
+	URL                    string
+	VehicleItem, HumanItem string
+	Stream                 *live.Stream
+	Live                   bool
 }
 
-func NewOpenHabGenerator(OpenHabURL, VehicleItem, HumanItem, AssetDir string, Remove bool) errand.ErrandGenerator {
-	return &OpenHabGenerator{URL: OpenHabURL, VehicleItem: VehicleItem, HumanItem: HumanItem, AssetDir: AssetDir, WithRemoval: Remove}
+func NewOpenHabGenerator(OpenHabURL, VehicleItem, HumanItem string, stream *live.Stream, live bool) errand.ErrandGenerator {
+	return &OpenHabGenerator{URL: OpenHabURL, VehicleItem: VehicleItem, HumanItem: HumanItem, Stream: stream, Live: live}
 }
 func (l *OpenHabGenerator) GenerateErrand(p api.Prediction) errand.Errand {
-	return &OpenHabErrand{Prediction: p, URL: l.URL, VehicleItem: l.VehicleItem, HumanItem: l.HumanItem, AssetDir: l.AssetDir, WithRemoval: l.WithRemoval}
+	return &OpenHabErrand{Prediction: p, URL: l.URL, VehicleItem: l.VehicleItem, HumanItem: l.HumanItem, Stream: l.Stream, Live: l.Live}
 }

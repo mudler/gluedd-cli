@@ -1,43 +1,64 @@
 package types
 
 import (
-	"encoding/hex"
+	"bytes"
+	"encoding/base64"
 	"fmt"
-	"github.com/mudler/gluedd-cli/pkg/assetstore"
 	"github.com/mudler/gluedd/pkg/resource"
-	"math/rand"
-	"path/filepath"
+	jpeg "github.com/pixiv/go-libjpeg/jpeg"
+	live "github.com/saljam/mjpeg"
+	"net/http"
+	"time"
 )
 
-func NewJpegStreamer(url string, baseurl string, local string) resource.Resource {
-	return &JpegStreamer{StreamUrl: url, BaseUrl: baseurl, Store: local}
-}
-
-func TempFileName(prefix, suffix string) string {
-	randBytes := make([]byte, 16)
-	rand.Read(randBytes)
-	return prefix + hex.EncodeToString(randBytes) + suffix
+func NewJpegStreamer(url string, baseurl string, stream *live.Stream, live bool) resource.Resource {
+	return &JpegStreamer{StreamUrl: url, BaseUrl: baseurl, Stream: stream, Live: live}
 }
 
 type JpegStreamer struct {
 	StreamUrl string
 	BaseUrl   string
-	Store     string
+	Stream    *live.Stream
+	Live      bool
 }
 
 func (l *JpegStreamer) Listen() chan string {
-	as := assetstore.NewAssetStore(l.Store)
-	go as.Run()
+
 	files := make(chan string)
+	if l.Live {
+		go http.Handle("/", l.Stream)
+		go http.ListenAndServe(l.BaseUrl, nil)
+	}
 	go func() {
 		for {
-			asset := TempFileName("predict", ".jpg")
-			err := assetstore.DownloadFile(filepath.Join(l.Store, asset), l.StreamUrl)
+
+			timeout := time.Duration(5 * time.Second)
+			client := http.Client{
+				Timeout: timeout,
+			}
+			// Get the data
+			resp, err := client.Get(l.StreamUrl)
 			if err != nil {
-				fmt.Println("error downloading stream file")
+				continue
+			}
+			defer resp.Body.Close()
+
+			img, err := jpeg.DecodeIntoRGBA(resp.Body, &jpeg.DecoderOptions{})
+			if err != nil {
+				fmt.Println("Error decoding jpeg image: "+err.Error(), "[ERROR]")
+				continue
 			}
 
-			files <- l.BaseUrl + asset
+			// Encode as base64
+			buffer64 := new(bytes.Buffer)
+			err = jpeg.Encode(buffer64, img, &jpeg.EncoderOptions{Quality: 100})
+			if err != nil {
+				fmt.Println("Error encoding image to base64: " + err.Error())
+				continue
+			}
+			imageBase64 := base64.StdEncoding.EncodeToString(buffer64.Bytes())
+
+			files <- imageBase64
 
 		}
 	}()
