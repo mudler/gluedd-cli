@@ -3,8 +3,8 @@ package assetstore
 import (
 	"io"
 	"net/http"
-	"time"
 	"os"
+	"time"
 )
 
 // DownloadFile will download a url to a local file. It's efficient because it will
