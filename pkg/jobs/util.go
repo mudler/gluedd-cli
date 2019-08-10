@@ -3,12 +3,34 @@ package generators
 import (
 	"fmt"
 	"strings"
+
+	"github.com/mudler/gluedd/pkg/api"
 )
 
 type Category struct {
 	Person  bool
 	Animal  bool
 	Vehicle bool
+}
+
+func PredictionToCategory(pre api.Prediction) Category {
+
+	cat := Category{Person: false, Animal: false, Vehicle: false}
+
+	for _, c := range pre.Body.Predictions[0].Classes {
+
+		localCat := DecodeCat(c.Cat)
+		if localCat.Animal {
+			cat.Animal = true
+		} else if localCat.Person {
+			cat.Person = true
+		} else if localCat.Vehicle {
+			cat.Vehicle = true
+		}
+
+	}
+
+	return cat
 }
 
 func DecodeCat(encoded string) Category {

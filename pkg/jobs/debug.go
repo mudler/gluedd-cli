@@ -17,9 +17,7 @@ func (e *DebugErrand) Apply() error {
 		return e.Prediction.Error
 	}
 	e.Prediction.Explain()
-	for _, c := range e.Prediction.Body.Predictions[0].Classes {
-		DecodeCat(c.Cat) // Use only to print info
-	}
+	PredictionToCategory(e.Prediction) // Use only to print
 	if e.Live {
 		go func() {
 			if len(e.Prediction.Url) == 0 {

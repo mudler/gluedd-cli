@@ -46,19 +46,7 @@ func (e *OpenHabErrand) Apply() error {
 		return e.Prediction.Error
 	}
 
-	var cat Category
-	for _, c := range e.Prediction.Body.Predictions[0].Classes {
-
-		localCat := DecodeCat(c.Cat)
-		if localCat.Animal {
-			cat.Animal = true
-		} else if localCat.Person {
-			cat.Person = true
-		} else if localCat.Vehicle {
-			cat.Vehicle = true
-		}
-
-	}
+	cat := PredictionToCategory(e.Prediction)
 
 	go func() {
 		if cat.Vehicle {

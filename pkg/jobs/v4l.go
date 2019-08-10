@@ -21,6 +21,8 @@ func (e *V4lErrand) Apply() error {
 	}
 
 	e.Prediction.Explain()
+	PredictionToCategory(e.Prediction) // Use only to print
+
 	if len(e.Prediction.Url) != 0 {
 		go func() {
 			b, err := e.Prediction.ToByte()
