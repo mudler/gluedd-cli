@@ -5,12 +5,13 @@ import (
 	"github.com/mudler/gluedd-cli/pkg/resource"
 	live "github.com/saljam/mjpeg"
 
+	"time"
+
 	"github.com/mudler/gluedd/pkg/api"
 	"github.com/mudler/gluedd/pkg/errand"
 	"github.com/mudler/gluedd/pkg/predictor"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"time"
 )
 
 var streamCmd = &cobra.Command{
@@ -28,9 +29,20 @@ var streamCmd = &cobra.Command{
 		}
 		stream := live.NewStream()
 
+		opts := types.JpegStreamerOptions{
+			ListeningURL:     viper.GetString("base_url"),
+			LiveStreamingURL: viper.GetString("stream_url"),
+			Stream:           stream,
+			LivePreview:      viper.GetBool("preview"),
+			Buffer:           viper.GetInt("buffer_size"),
+			Width:            uint(viper.GetInt("image_width")),
+			Height:           uint(viper.GetInt("image_height")),
+			Resize:           viper.GetBool("resize"),
+			Approx:           viper.GetBool("approx"),
+		}
 		//errandgen := errand.NewDefaultErrandGenerator()
-		errandgen := generators.NewDebugGenerator()
-		predictor := predictor.NewPredictor(dd, types.NewJpegStreamer(viper.GetString("stream_url"), viper.GetString("base_url"), stream, false, viper.GetInt("buffer_size")), errandgen)
+		errandgen := generators.NewDebugGenerator(stream, viper.GetBool("preview"))
+		predictor := predictor.NewPredictor(dd, types.NewJpegStreamer(opts), errandgen)
 
 		//predictor := resource.NewPredictor(dd, resource.NewstreamWatcher(args[0]))
 		consumer := errand.NewErrandConsumer()

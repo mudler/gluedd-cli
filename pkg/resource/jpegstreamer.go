@@ -4,31 +4,40 @@ import (
 	"bytes"
 	"encoding/base64"
 	"fmt"
-	"github.com/mudler/gluedd/pkg/resource"
-	jpeg "github.com/pixiv/go-libjpeg/jpeg"
-	live "github.com/saljam/mjpeg"
+	"image"
 	"net/http"
 	"time"
+
+	"github.com/mudler/gluedd/pkg/resource"
+	"github.com/nfnt/resize"
+	jpeg "github.com/pixiv/go-libjpeg/jpeg"
+	live "github.com/saljam/mjpeg"
 )
 
-func NewJpegStreamer(url string, baseurl string, stream *live.Stream, live bool, Buffer int) resource.Resource {
-	return &JpegStreamer{StreamUrl: url, BaseUrl: baseurl, Stream: stream, Live: live, Buffer: Buffer}
+type JpegStreamerOptions struct {
+	LiveStreamingURL string
+	ListeningURL     string
+	Stream           *live.Stream
+	Buffer           int
+	Width, Height    uint
+	Resize, Approx   bool
+	LivePreview      bool
+}
+
+func NewJpegStreamer(opts JpegStreamerOptions) resource.Resource {
+	return &JpegStreamer{Options: opts}
 }
 
 type JpegStreamer struct {
-	StreamUrl string
-	BaseUrl   string
-	Stream    *live.Stream
-	Live      bool
-	Buffer    int
+	Options JpegStreamerOptions
 }
 
 func (l *JpegStreamer) Listen() chan string {
 
-	files := make(chan string, l.Buffer)
-	if l.Live {
-		go http.Handle("/", l.Stream)
-		go http.ListenAndServe(l.BaseUrl, nil)
+	files := make(chan string, l.Options.Buffer)
+	if l.Options.LivePreview {
+		go http.Handle("/", l.Options.Stream)
+		go http.ListenAndServe(l.Options.ListeningURL, nil)
 	}
 	go func() {
 		for {
@@ -38,7 +47,7 @@ func (l *JpegStreamer) Listen() chan string {
 				Timeout: timeout,
 			}
 			// Get the data
-			resp, err := client.Get(l.StreamUrl)
+			resp, err := client.Get(l.Options.LiveStreamingURL)
 			if err != nil {
 				time.Sleep(2 * time.Second)
 				continue
@@ -51,15 +60,28 @@ func (l *JpegStreamer) Listen() chan string {
 				continue
 			}
 
+			var resizedImage image.Image
+			if l.Options.Resize {
+				if l.Options.Approx {
+					resizedImage = resize.Thumbnail(l.Options.Width, l.Options.Height, img, resize.Lanczos3)
+				} else {
+					resizedImage = resize.Resize(l.Options.Width, l.Options.Height, img, resize.Lanczos3)
+				}
+			}
+
 			// Encode as base64
 			buffer64 := new(bytes.Buffer)
-			err = jpeg.Encode(buffer64, img, &jpeg.EncoderOptions{Quality: 100})
+			if l.Options.Resize {
+				err = jpeg.Encode(buffer64, resizedImage, &jpeg.EncoderOptions{Quality: 100})
+			} else {
+				err = jpeg.Encode(buffer64, img, &jpeg.EncoderOptions{Quality: 100})
+			}
 			if err != nil {
 				fmt.Println("Error encoding image to base64: " + err.Error())
 				continue
 			}
 			imageBase64 := base64.StdEncoding.EncodeToString(buffer64.Bytes())
-			if l.Buffer != 0 {
+			if l.Options.Buffer != 0 {
 
 				select {
 				case files <- imageBase64:

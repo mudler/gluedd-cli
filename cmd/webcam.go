@@ -5,14 +5,15 @@ import (
 	"github.com/mudler/gluedd-cli/pkg/resource"
 	live "github.com/saljam/mjpeg"
 
+	"log"
+	"strconv"
+	"time"
+
 	"github.com/mudler/gluedd/pkg/api"
 	"github.com/mudler/gluedd/pkg/errand"
 	"github.com/mudler/gluedd/pkg/predictor"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"log"
-	"strconv"
-	"time"
 )
 
 var webcamCmd = &cobra.Command{

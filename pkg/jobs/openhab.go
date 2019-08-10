@@ -79,7 +79,9 @@ func (e *OpenHabErrand) Apply() error {
 	}()
 	if e.Live {
 		go func() {
-
+			if len(e.Prediction.Url) == 0 {
+				return
+			}
 			b, err := e.Prediction.ToByte()
 			if err != nil {
 				return

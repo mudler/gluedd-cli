@@ -6,10 +6,13 @@ import (
 
 	"github.com/mudler/gluedd/pkg/api"
 	"github.com/mudler/gluedd/pkg/errand"
+	live "github.com/saljam/mjpeg"
 )
 
 type DebugErrand struct {
+	Live       bool
 	Prediction api.Prediction
+	Stream     *live.Stream
 }
 
 func (e *DebugErrand) Apply() error {
@@ -33,6 +36,18 @@ func (e *DebugErrand) Apply() error {
 			fmt.Println("Person detected")
 		}
 	}
+	if e.Live {
+		go func() {
+			if len(e.Prediction.Url) == 0 {
+				return
+			}
+			b, err := e.Prediction.ToByte()
+			if err != nil {
+				return
+			}
+			go e.Stream.UpdateJPEG(b)
+		}()
+	}
 	return nil
 }
 
@@ -50,11 +65,14 @@ func (e *DebugErrand) Generate(d api.Detector) *api.Prediction {
 	return nil
 }
 
-type DebugGenerator struct{}
+type DebugGenerator struct {
+	Live   bool
+	Stream *live.Stream
+}
 
-func NewDebugGenerator() errand.ErrandGenerator {
-	return &DebugGenerator{}
+func NewDebugGenerator(stream *live.Stream, live bool) errand.ErrandGenerator {
+	return &DebugGenerator{Live: live, Stream: stream}
 }
 func (l *DebugGenerator) GenerateErrand(p api.Prediction) errand.Errand {
-	return &DebugErrand{Prediction: p}
+	return &DebugErrand{Prediction: p, Stream: l.Stream}
 }
