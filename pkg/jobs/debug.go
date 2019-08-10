@@ -1,9 +1,6 @@
 package generators
 
 import (
-	"fmt"
-	"strings"
-
 	"github.com/mudler/gluedd/pkg/api"
 	"github.com/mudler/gluedd/pkg/errand"
 	live "github.com/saljam/mjpeg"
@@ -21,20 +18,7 @@ func (e *DebugErrand) Apply() error {
 	}
 	e.Prediction.Explain()
 	for _, c := range e.Prediction.Body.Predictions[0].Classes {
-		if strings.Contains(c.Cat, "Van") || strings.Contains(c.Cat, "Truck") || strings.Contains(c.Cat, "Car") {
-			fmt.Println("Vehicle detected")
-		}
-		if strings.Contains(c.Cat, "Man") {
-			fmt.Println("Man detected")
-		}
-
-		if strings.Contains(c.Cat, "Woman") {
-			fmt.Println("Woman detected")
-		}
-
-		if strings.Contains(c.Cat, "Person") || strings.Contains(c.Cat, "Face") {
-			fmt.Println("Person detected")
-		}
+		DecodeCat(c.Cat) // Use only to print info
 	}
 	if e.Live {
 		go func() {

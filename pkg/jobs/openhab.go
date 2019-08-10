@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/mudler/gluedd/pkg/api"
@@ -13,11 +12,11 @@ import (
 )
 
 type OpenHabErrand struct {
-	Prediction             api.Prediction
-	URL                    string
-	VehicleItem, HumanItem string
-	Stream                 *live.Stream
-	Live                   bool
+	Prediction                         api.Prediction
+	URL                                string
+	VehicleItem, HumanItem, AnimalItem string
+	Stream                             *live.Stream
+	Live                               bool
 }
 
 func (e *OpenHabErrand) UpdateItem(item, data string) error {
@@ -47,34 +46,35 @@ func (e *OpenHabErrand) Apply() error {
 		return e.Prediction.Error
 	}
 
-	person := false
-	vehicle := false
+	var cat Category
 	for _, c := range e.Prediction.Body.Predictions[0].Classes {
-		if strings.Contains(c.Cat, "Van") || strings.Contains(c.Cat, "Truck") || strings.Contains(c.Cat, "Car") {
-			vehicle = true
-		}
-		if strings.Contains(c.Cat, "Man") {
-			person = true
+
+		localCat := DecodeCat(c.Cat)
+		if localCat.Animal {
+			cat.Animal = true
+		} else if localCat.Person {
+			cat.Person = true
+		} else if localCat.Vehicle {
+			cat.Vehicle = true
 		}
 
-		if strings.Contains(c.Cat, "Woman") {
-			person = true
-		}
-
-		if strings.Contains(c.Cat, "Person") || strings.Contains(c.Cat, "Face") {
-			person = true
-		}
 	}
+
 	go func() {
-		if vehicle {
+		if cat.Vehicle {
 			e.UpdateItem(e.VehicleItem, "ON")
 		} else {
 			e.UpdateItem(e.VehicleItem, "OFF")
 		}
-		if person {
+		if cat.Person {
 			e.UpdateItem(e.HumanItem, "ON")
 		} else {
 			e.UpdateItem(e.HumanItem, "OFF")
+		}
+		if cat.Animal {
+			e.UpdateItem(e.AnimalItem, "ON")
+		} else {
+			e.UpdateItem(e.AnimalItem, "OFF")
 		}
 	}()
 	if e.Live {
@@ -98,15 +98,15 @@ func (e *OpenHabErrand) Generate(d api.Detector) *api.Prediction {
 }
 
 type OpenHabGenerator struct {
-	URL                    string
-	VehicleItem, HumanItem string
-	Stream                 *live.Stream
-	Live                   bool
+	URL                                string
+	VehicleItem, HumanItem, AnimalItem string
+	Stream                             *live.Stream
+	Live                               bool
 }
 
-func NewOpenHabGenerator(OpenHabURL, VehicleItem, HumanItem string, stream *live.Stream, live bool) errand.ErrandGenerator {
-	return &OpenHabGenerator{URL: OpenHabURL, VehicleItem: VehicleItem, HumanItem: HumanItem, Stream: stream, Live: live}
+func NewOpenHabGenerator(OpenHabURL, VehicleItem, HumanItem, AnimalItem string, stream *live.Stream, live bool) errand.ErrandGenerator {
+	return &OpenHabGenerator{URL: OpenHabURL, VehicleItem: VehicleItem, HumanItem: HumanItem, AnimalItem: AnimalItem, Stream: stream, Live: live}
 }
 func (l *OpenHabGenerator) GenerateErrand(p api.Prediction) errand.Errand {
-	return &OpenHabErrand{Prediction: p, URL: l.URL, VehicleItem: l.VehicleItem, HumanItem: l.HumanItem, Stream: l.Stream, Live: l.Live}
+	return &OpenHabErrand{Prediction: p, URL: l.URL, VehicleItem: l.VehicleItem, HumanItem: l.HumanItem, AnimalItem: l.AnimalItem, Stream: l.Stream, Live: l.Live}
 }

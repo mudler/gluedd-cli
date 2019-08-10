@@ -20,12 +20,15 @@ func (e *V4lErrand) Apply() error {
 		return e.Prediction.Error
 	}
 
-	if len(e.Prediction.Body.Predictions) != 0 {
-		b, err := e.Prediction.ToByte()
-		if err != nil {
-			return err
-		}
-		go e.Stream.UpdateJPEG(b)
+	e.Prediction.Explain()
+	if len(e.Prediction.Url) != 0 {
+		go func() {
+			b, err := e.Prediction.ToByte()
+			if err != nil {
+				return
+			}
+			e.Stream.UpdateJPEG(b)
+		}()
 	} else {
 		return errors.New("Can't encode frame to live stream.")
 	}

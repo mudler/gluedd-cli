@@ -42,7 +42,7 @@ var openhabCmd = &cobra.Command{
 		}
 
 		//errandgen := errand.NewDefaultErrandGenerator()
-		errandgen := generators.NewOpenHabGenerator(viper.GetString("openhab_url"), viper.GetString("vehicle_item"), viper.GetString("person_item"), stream, true)
+		errandgen := generators.NewOpenHabGenerator(viper.GetString("openhab_url"), viper.GetString("vehicle_item"), viper.GetString("person_item"), viper.GetString("animal_item"), stream, true)
 		predictor := predictor.NewPredictor(dd, types.NewJpegStreamer(opts), errandgen)
 
 		//predictor := resource.NewPredictor(dd, resource.NewopenhabWatcher(args[0]))

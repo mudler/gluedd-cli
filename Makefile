@@ -31,7 +31,7 @@ lint:
 
 .PHONY: build
 build:
-	go build -ldflags "-extldflags=-Wl,--allow-multiple-definition"
+	go build
 
 
 .PHONY: fmt
