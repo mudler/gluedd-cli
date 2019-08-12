@@ -27,11 +27,8 @@ import (
 )
 
 type OpenHabErrand struct {
-	Prediction                         api.Prediction
-	URL                                string
-	VehicleItem, HumanItem, AnimalItem string
-	Stream                             *live.Stream
-	Live                               bool
+	Prediction api.Prediction
+	Options    *OpenHabGeneratorOptions
 }
 
 func (e *OpenHabErrand) UpdateItem(item, data string) error {
@@ -40,7 +37,7 @@ func (e *OpenHabErrand) UpdateItem(item, data string) error {
 		Timeout: timeout,
 	}
 	fmt.Println("Updating", item, data)
-	req, err := http.NewRequest("POST", e.URL+"/rest/items/"+item, bytes.NewBufferString(data))
+	req, err := http.NewRequest("POST", e.Options.APIURL+"/rest/items/"+item, bytes.NewBufferString(data))
 	if err != nil {
 		return err
 	}
@@ -65,22 +62,22 @@ func (e *OpenHabErrand) Apply() error {
 
 	go func() {
 		if cat.Vehicle {
-			e.UpdateItem(e.VehicleItem, "ON")
+			e.UpdateItem(e.Options.VehicleItem, "ON")
 		} else {
-			e.UpdateItem(e.VehicleItem, "OFF")
+			e.UpdateItem(e.Options.VehicleItem, "OFF")
 		}
 		if cat.Person {
-			e.UpdateItem(e.HumanItem, "ON")
+			e.UpdateItem(e.Options.HumanItem, "ON")
 		} else {
-			e.UpdateItem(e.HumanItem, "OFF")
+			e.UpdateItem(e.Options.HumanItem, "OFF")
 		}
 		if cat.Animal {
-			e.UpdateItem(e.AnimalItem, "ON")
+			e.UpdateItem(e.Options.AnimalItem, "ON")
 		} else {
-			e.UpdateItem(e.AnimalItem, "OFF")
+			e.UpdateItem(e.Options.AnimalItem, "OFF")
 		}
 	}()
-	if e.Live {
+	if e.Options.Live {
 		go func() {
 			if len(e.Prediction.Url) == 0 {
 				return
@@ -89,7 +86,7 @@ func (e *OpenHabErrand) Apply() error {
 			if err != nil {
 				return
 			}
-			go e.Stream.UpdateJPEG(b)
+			go e.Options.Stream.UpdateJPEG(b)
 		}()
 	}
 	return nil
@@ -101,15 +98,19 @@ func (e *OpenHabErrand) Generate(d api.Detector) *api.Prediction {
 }
 
 type OpenHabGenerator struct {
-	URL                                string
-	VehicleItem, HumanItem, AnimalItem string
-	Stream                             *live.Stream
-	Live                               bool
+	URL     string
+	Options *OpenHabGeneratorOptions
 }
 
-func NewOpenHabGenerator(OpenHabURL, VehicleItem, HumanItem, AnimalItem string, stream *live.Stream, live bool) errand.ErrandGenerator {
-	return &OpenHabGenerator{URL: OpenHabURL, VehicleItem: VehicleItem, HumanItem: HumanItem, AnimalItem: AnimalItem, Stream: stream, Live: live}
+type OpenHabGeneratorOptions struct {
+	APIURL, VehicleItem, HumanItem, AnimalItem string
+	Stream                                     *live.Stream
+	Live                                       bool
+}
+
+func NewOpenHabGenerator(opts *OpenHabGeneratorOptions) errand.ErrandGenerator {
+	return &OpenHabGenerator{Options: opts}
 }
 func (l *OpenHabGenerator) GenerateErrand(p api.Prediction) errand.Errand {
-	return &OpenHabErrand{Prediction: p, URL: l.URL, VehicleItem: l.VehicleItem, HumanItem: l.HumanItem, AnimalItem: l.AnimalItem, Stream: l.Stream, Live: l.Live}
+	return &OpenHabErrand{Prediction: p, Options: l.Options}
 }

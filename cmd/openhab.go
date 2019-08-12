@@ -56,7 +56,15 @@ var openhabCmd = &cobra.Command{
 			Approx:           viper.GetBool("approx"),
 		}
 
-		errandgen := generators.NewOpenHabGenerator(viper.GetString("openhab_url"), viper.GetString("vehicle_item"), viper.GetString("person_item"), viper.GetString("animal_item"), stream, true)
+		openhabOptions := &generators.OpenHabGeneratorOptions{
+			APIURL:      viper.GetString("openhab_url"),
+			VehicleItem: viper.GetString("vehicle_item"),
+			AnimalItem:  viper.GetString("animal_item"),
+			Stream:      stream,
+			Live:        viper.GetBool("preview"),
+		}
+
+		errandgen := generators.NewOpenHabGenerator(openhabOptions)
 		predictor := predictor.NewPredictor(dd, types.NewJpegStreamer(opts), errandgen)
 		consumer := errand.NewErrandConsumer()
 
