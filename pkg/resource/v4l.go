@@ -4,21 +4,30 @@ import (
 	"bytes"
 	"encoding/base64"
 	"fmt"
+	"os"
+	"strconv"
+
 	"github.com/korandiz/v4l"
 	"github.com/korandiz/v4l/fmt/mjpeg"
 	"github.com/mudler/gluedd/pkg/resource"
 	jpeg "github.com/pixiv/go-libjpeg/jpeg"
 	live "github.com/saljam/mjpeg"
-	"os"
-	"strconv"
 
 	"net/http"
 )
 
-func NewV4lStreamer(device int, StreamURL string, Width, Height int, stream *live.Stream, Buffer int) resource.Resource {
+type V4lStreamerOptions struct {
+	Device        int
+	StreamURL     string
+	Width, Height int
+	Stream        *live.Stream
+	Buffer        int
+}
+
+func NewV4lStreamer(opts *V4lStreamerOptions) resource.Resource {
 	// Declare stream for web preview
 
-	devicePath := "/dev/video" + strconv.Itoa(device)
+	devicePath := "/dev/video" + strconv.Itoa(opts.Device)
 
 	cam, err := v4l.Open(devicePath)
 	if err != nil {
@@ -36,13 +45,13 @@ func NewV4lStreamer(device int, StreamURL string, Width, Height int, stream *liv
 
 	// Set parameters
 	cfg.Format = mjpeg.FourCC
-	cfg.Width = Width
-	cfg.Height = Height
+	cfg.Width = opts.Width
+	cfg.Height = opts.Height
 
 	// FIXME: This is a workaround - we have goroutine buffers but
 	// we need to drop some fps or we will quickly start to detect every single frame.. and we will start to detect the past.
 
-	cfg.FPS = v4l.Frac{N: uint32(1), D: uint32(Buffer)} // Dummy - Make 1/Buff FPS to ensure that cam drops some frames to avoid conjestion
+	cfg.FPS = v4l.Frac{N: uint32(1), D: uint32(opts.Buffer)} // Dummy - Make 1/Buff FPS to ensure that cam drops some frames to avoid congestion
 
 	// Apply config
 	err = cam.SetConfig(cfg)
@@ -69,22 +78,19 @@ func NewV4lStreamer(device int, StreamURL string, Width, Height int, stream *liv
 		os.Exit(1)
 	}
 
-	return &V4lStreamer{DeviceID: device, StreamURL: StreamURL, Cam: cam, Stream: stream, Buffer: Buffer}
+	return &V4lStreamer{Options: opts, Cam: cam}
 }
 
 type V4lStreamer struct {
-	DeviceID  int
-	StreamURL string
-	Cam       *v4l.Device
-	Stream    *live.Stream
-	Buffer    int
+	Options *V4lStreamerOptions
+	Cam     *v4l.Device
 }
 
 func (l *V4lStreamer) Listen() chan string {
-	files := make(chan string, l.Buffer)
+	files := make(chan string, l.Options.Buffer)
 
-	go http.Handle("/", l.Stream)
-	go http.ListenAndServe(l.StreamURL, nil)
+	go http.Handle("/", l.Options.Stream)
+	go http.ListenAndServe(l.Options.StreamURL, nil)
 	go func() {
 		for {
 			// Read frame from camera
@@ -113,7 +119,7 @@ func (l *V4lStreamer) Listen() chan string {
 			}
 			imageBase64 := base64.StdEncoding.EncodeToString(buffer64.Bytes())
 
-			if l.Buffer != 0 {
+			if l.Options.Buffer != 0 {
 				select {
 				case files <- imageBase64:
 				default:

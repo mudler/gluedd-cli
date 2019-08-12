@@ -38,9 +38,19 @@ var webcamCmd = &cobra.Command{
 			log.Fatalln("Invalid devide ID")
 		}
 		stream := live.NewStream()
+
+		opts := &types.V4lStreamerOptions{
+			Device:    deviceID,
+			Stream:    stream,
+			Buffer:    viper.GetInt("buffer_size"),
+			StreamURL: viper.GetString("base_url"),
+			Width:     viper.GetInt("webcam_width"),
+			Height:    viper.GetInt("webcam_width"),
+		}
+
 		//errandgen := errand.NewDefaultErrandGenerator()
 		errandgen := generators.NewV4lGenerator(stream)
-		predictor := predictor.NewPredictor(dd, types.NewV4lStreamer(deviceID, viper.GetString("base_url"), viper.GetInt("webcam_width"), viper.GetInt("webcam_height"), stream, viper.GetInt("buffer_size")), errandgen)
+		predictor := predictor.NewPredictor(dd, types.NewV4lStreamer(opts), errandgen)
 
 		//predictor := resource.NewPredictor(dd, resource.NewwebcamWatcher(args[0]))
 		consumer := errand.NewErrandConsumer()
