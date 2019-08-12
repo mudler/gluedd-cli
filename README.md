@@ -5,11 +5,11 @@ Usage example of [gluedd](https://github.com/mudler/gluedd/), inspired from [liv
 It reads JPEG streams and webcam and passes to Deepdetect. It creates a webserver that can be used to debug the models. It also allows to update Items of an OpenHab instance, allowing to connect DeepDetect models with 
 ## Run:
 
-### 1) Setup deeepdetect API server:
+### 1) Setup [Deeepdetect](https://www.deepdetect.com/) API server:
 
 (See also the [livedetect](https://github.com/jolibrain/livedetect/wiki/Step-by-step-for-Raspberry-Pi-3) step-by-step guide)
 
-Starts the api (rpi with ncnn in this example): 
+Starts the [Deeepdetect](https://www.deepdetect.com/) API (on a rpi3 with ncnn in this example): 
 
     $> docker run --restart=always --name deepdetect -d -p 8890:8080 -v $HOME/models:/opt/models jolibrain/deepdetect_ncnn_pi3
 
