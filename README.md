@@ -56,6 +56,7 @@ Create a service:
     service: "squeezenet_ssd_voc"
     buffer_size: 1 # 0 to disable fixed-buffering
     preview: true
+    confidence: 0.3
 
     # Stream
     base_url: "http://0.0.0.0:4000/" # live preview stream url

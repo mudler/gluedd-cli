@@ -40,7 +40,12 @@ var webcamCmd = &cobra.Command{
 
 		Server := viper.GetString("api_server")
 
-		dd := api.NewDeepDetect(Server, nil)
+		dd := api.NewDeepDetect(Server, &api.Options{
+			Width:      viper.GetInt("webcam_width"),
+			Height:     viper.GetInt("webcam_height"),
+			Detection:  true,
+			Confidence: viper.GetFloat64("confidence"),
+		})
 		if len(Service) > 0 {
 			dd.WithService(Service)
 		}
@@ -60,7 +65,7 @@ var webcamCmd = &cobra.Command{
 			Buffer:    viper.GetInt("buffer_size"),
 			StreamURL: viper.GetString("base_url"),
 			Width:     viper.GetInt("webcam_width"),
-			Height:    viper.GetInt("webcam_width"),
+			Height:    viper.GetInt("webcam_height"),
 		}
 
 		errandgen := generators.NewV4lGenerator(stream)

@@ -67,7 +67,12 @@ var runCmd = &cobra.Command{
 		if len(args) == 0 {
 			log.Fatalln("Insufficient arguments")
 		}
-		dd := api.NewDeepDetect(Server, nil)
+		dd := api.NewDeepDetect(Server, &api.Options{
+			Width:      viper.GetInt("image_width"),
+			Height:     viper.GetInt("image_height"),
+			Detection:  true,
+			Confidence: viper.GetFloat64("confidence"),
+		})
 		if len(Service) > 0 {
 			dd.WithService(Service)
 		}
