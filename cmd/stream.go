@@ -65,6 +65,8 @@ var streamCmd = &cobra.Command{
 			CropMode:         viper.GetString("crop_mode"),
 			CropAnchorX:      viper.GetInt("crop_anchor_x"),
 			CropAnchorY:      viper.GetInt("crop_anchor_y"),
+			CropWidth:        viper.GetInt("crop_width"),
+			CropHeight:       viper.GetInt("crop_height"),
 		}
 		errandgen := generators.NewDebugGenerator(stream, viper.GetBool("preview"))
 		predictor := predictor.NewPredictor(dd, types.NewJpegStreamer(opts), errandgen)

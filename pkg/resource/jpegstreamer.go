@@ -31,13 +31,13 @@ import (
 )
 
 type JpegStreamerOptions struct {
-	LiveStreamingURL                          string
-	ListeningURL, CropMode                    string
-	Stream                                    *live.Stream
-	Buffer, Timeout, CropAnchorX, CropAnchorY int
-	Width, Height                             uint
-	Resize, Approx, Crop, CropAnchor          bool
-	LivePreview                               bool
+	LiveStreamingURL                                                 string
+	ListeningURL, CropMode                                           string
+	Stream                                                           *live.Stream
+	Buffer, Timeout, CropWidth, CropHeight, CropAnchorX, CropAnchorY int
+	Width, Height                                                    uint
+	Resize, Approx, Crop, CropAnchor                                 bool
+	LivePreview                                                      bool
 }
 
 func NewJpegStreamer(opts JpegStreamerOptions) resource.Resource {
@@ -87,8 +87,8 @@ func (l *JpegStreamer) Listen() chan string {
 
 			if l.Options.Crop {
 				cfg := cutter.Config{
-					Width:  int(l.Options.Width),
-					Height: int(l.Options.Height),
+					Width:  l.Options.CropWidth,
+					Height: l.Options.CropHeight,
 				}
 				switch l.Options.CropMode {
 				case "centered":
@@ -101,7 +101,11 @@ func (l *JpegStreamer) Listen() chan string {
 				if l.Options.CropAnchor {
 					cfg.Anchor = image.Point{l.Options.CropAnchorX, l.Options.CropAnchorY}
 				}
-				resizedImage, err = cutter.Crop(img, cfg)
+				if l.Options.Resize {
+					resizedImage, err = cutter.Crop(resizedImage, cfg)
+				} else {
+					resizedImage, err = cutter.Crop(img, cfg)
+				}
 				if err != nil {
 					fmt.Println("Error cropping jpeg image: "+err.Error(), "[ERROR]")
 					continue

@@ -65,6 +65,9 @@ var openhabCmd = &cobra.Command{
 			CropAnchorX:      viper.GetInt("crop_anchor_x"),
 			CropAnchorY:      viper.GetInt("crop_anchor_y"),
 			Timeout:          viper.GetInt("client_timeout"),
+
+			CropWidth:  viper.GetInt("crop_width"),
+			CropHeight: viper.GetInt("crop_height"),
 		}
 
 		openhabOptions := &generators.OpenHabGeneratorOptions{
