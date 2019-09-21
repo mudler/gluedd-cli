@@ -59,6 +59,7 @@ var openhabCmd = &cobra.Command{
 			Height:           uint(viper.GetInt("image_height")),
 			Resize:           viper.GetBool("resize"),
 			Approx:           viper.GetBool("approx"),
+			Timeout:          viper.GetInt("client_timeout"),
 		}
 
 		openhabOptions := &generators.OpenHabGeneratorOptions{

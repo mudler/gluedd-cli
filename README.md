@@ -61,6 +61,7 @@ Create a service:
     # Stream
     base_url: "http://0.0.0.0:4000/" # live preview stream url
     stream_url: "http://192.168.1.2:88/cgi-bin/CGIProxy.fcgi?cmd=snapPicture2&usr=&pwd=" # Remote Jpeg stream
+    client_timeout: 30
 
     # Openhab
     vehicle_item: "Camera1VehicleDetection" 

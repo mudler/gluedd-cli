@@ -59,6 +59,7 @@ var streamCmd = &cobra.Command{
 			Height:           uint(viper.GetInt("image_height")),
 			Resize:           viper.GetBool("resize"),
 			Approx:           viper.GetBool("approx"),
+			Timeout:          viper.GetInt("client_timeout"),
 		}
 		errandgen := generators.NewDebugGenerator(stream, viper.GetBool("preview"))
 		predictor := predictor.NewPredictor(dd, types.NewJpegStreamer(opts), errandgen)

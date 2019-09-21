@@ -33,7 +33,7 @@ type JpegStreamerOptions struct {
 	LiveStreamingURL string
 	ListeningURL     string
 	Stream           *live.Stream
-	Buffer           int
+	Buffer,Timeout           int
 	Width, Height    uint
 	Resize, Approx   bool
 	LivePreview      bool
@@ -57,7 +57,7 @@ func (l *JpegStreamer) Listen() chan string {
 	go func() {
 		for {
 
-			timeout := time.Duration(2 * time.Second)
+			timeout := time.Duration(time.Duration(l.Options.Timeout) * time.Second)
 			client := http.Client{
 				Timeout: timeout,
 			}
