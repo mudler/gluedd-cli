@@ -25,18 +25,19 @@ import (
 
 	"github.com/mudler/gluedd/pkg/resource"
 	"github.com/nfnt/resize"
+	"github.com/oliamb/cutter"
 	jpeg "github.com/pixiv/go-libjpeg/jpeg"
 	live "github.com/saljam/mjpeg"
 )
 
 type JpegStreamerOptions struct {
-	LiveStreamingURL string
-	ListeningURL     string
-	Stream           *live.Stream
-	Buffer,Timeout           int
-	Width, Height    uint
-	Resize, Approx   bool
-	LivePreview      bool
+	LiveStreamingURL                          string
+	ListeningURL, CropMode                    string
+	Stream                                    *live.Stream
+	Buffer, Timeout, CropAnchorX, CropAnchorY int
+	Width, Height                             uint
+	Resize, Approx, Crop, CropAnchor          bool
+	LivePreview                               bool
 }
 
 func NewJpegStreamer(opts JpegStreamerOptions) resource.Resource {
@@ -84,9 +85,32 @@ func (l *JpegStreamer) Listen() chan string {
 				}
 			}
 
+			if l.Options.Crop {
+				cfg := cutter.Config{
+					Width:  int(l.Options.Width),
+					Height: int(l.Options.Height),
+				}
+				switch l.Options.CropMode {
+				case "centered":
+					cfg.Mode = cutter.Centered
+				case "top_left":
+					cfg.Mode = cutter.TopLeft
+				default:
+					cfg.Mode = cutter.Centered
+				}
+				if l.Options.CropAnchor {
+					cfg.Anchor = image.Point{l.Options.CropAnchorX, l.Options.CropAnchorY}
+				}
+				resizedImage, err = cutter.Crop(img, cfg)
+				if err != nil {
+					fmt.Println("Error cropping jpeg image: "+err.Error(), "[ERROR]")
+					continue
+				}
+			}
+
 			// Encode as base64
 			buffer64 := new(bytes.Buffer)
-			if l.Options.Resize {
+			if l.Options.Resize || l.Options.Crop {
 				err = jpeg.Encode(buffer64, resizedImage, &jpeg.EncoderOptions{Quality: 100})
 			} else {
 				err = jpeg.Encode(buffer64, img, &jpeg.EncoderOptions{Quality: 100})

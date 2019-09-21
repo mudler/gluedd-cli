@@ -16,8 +16,8 @@
 package cmd
 
 import (
-	"github.com/mudler/gluedd-cli/pkg/jobs"
-	"github.com/mudler/gluedd-cli/pkg/resource"
+	generators "github.com/mudler/gluedd-cli/pkg/jobs"
+	types "github.com/mudler/gluedd-cli/pkg/resource"
 	live "github.com/saljam/mjpeg"
 
 	"time"
@@ -60,6 +60,11 @@ var streamCmd = &cobra.Command{
 			Resize:           viper.GetBool("resize"),
 			Approx:           viper.GetBool("approx"),
 			Timeout:          viper.GetInt("client_timeout"),
+			Crop:             viper.GetBool("crop"),
+			CropAnchor:       viper.GetBool("crop_anchor"),
+			CropMode:         viper.GetString("crop_mode"),
+			CropAnchorX:      viper.GetInt("crop_anchor_x"),
+			CropAnchorY:      viper.GetInt("crop_anchor_y"),
 		}
 		errandgen := generators.NewDebugGenerator(stream, viper.GetBool("preview"))
 		predictor := predictor.NewPredictor(dd, types.NewJpegStreamer(opts), errandgen)

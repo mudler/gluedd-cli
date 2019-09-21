@@ -16,8 +16,8 @@
 package cmd
 
 import (
-	"github.com/mudler/gluedd-cli/pkg/jobs"
-	"github.com/mudler/gluedd-cli/pkg/resource"
+	generators "github.com/mudler/gluedd-cli/pkg/jobs"
+	types "github.com/mudler/gluedd-cli/pkg/resource"
 	live "github.com/saljam/mjpeg"
 
 	"time"
@@ -58,7 +58,12 @@ var openhabCmd = &cobra.Command{
 			Width:            uint(viper.GetInt("image_width")),
 			Height:           uint(viper.GetInt("image_height")),
 			Resize:           viper.GetBool("resize"),
+			Crop:             viper.GetBool("crop"),
+			CropMode:         viper.GetString("crop_mode"),
+			CropAnchor:       viper.GetBool("crop_anchor"),
 			Approx:           viper.GetBool("approx"),
+			CropAnchorX:      viper.GetInt("crop_anchor_x"),
+			CropAnchorY:      viper.GetInt("crop_anchor_y"),
 			Timeout:          viper.GetInt("client_timeout"),
 		}
 
