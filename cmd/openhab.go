@@ -73,6 +73,7 @@ var openhabCmd = &cobra.Command{
 		openhabOptions := &generators.OpenHabGeneratorOptions{
 			APIURL:      viper.GetString("openhab_url"),
 			VehicleItem: viper.GetString("vehicle_item"),
+			HumanItem:   viper.GetString("person_item"),
 			AnimalItem:  viper.GetString("animal_item"),
 			Stream:      stream,
 			Live:        viper.GetBool("preview"),
