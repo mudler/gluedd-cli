@@ -25,6 +25,7 @@ deps:
 	go get github.com/mattn/goveralls
 	go get -u github.com/onsi/ginkgo/ginkgo
 	go get -u github.com/onsi/gomega/...
+	go get github.com/mitchellh/gox
 
 lint:
 	golint ./... | grep -v "be unexported"
@@ -32,7 +33,6 @@ lint:
 .PHONY: build
 build:
 	go build
-
 
 .PHONY: fmt
 fmt:
@@ -46,3 +46,21 @@ test:
 coverage:
 	go test ./... -race -coverprofile=coverage.txt -covermode=atomic
 
+.PHONY: docker-build
+docker-build:
+	docker build -t golang-gluedd .
+	docker run -e GOPATH=/ \
+	-v $(ROOT_DIR):/src/github.com/mudler/gluedd-cli \
+	--workdir /src/github.com/mudler/gluedd-cli \
+	--rm -ti golang-gluedd make build
+
+.PHONY: docker-build-arm
+docker-build:
+	docker build -t golang-gluedd .
+	docker run -e GOPATH=/ \
+	-e CGO_ENABLED=1 \
+	-e CC=arm-linux-gnueabihf-gcc \
+	-e GOOS=linux -e GOARCH=arm \
+	-v $(ROOT_DIR):/src/github.com/mudler/gluedd-cli \
+	--workdir /src/github.com/mudler/gluedd-cli \
+	--rm -ti golang-gluedd make build
