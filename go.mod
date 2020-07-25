@@ -9,12 +9,14 @@ require (
 	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
-	github.com/jolibrain/godd v0.0.0-20190702095257-ae5a168df98f // indirect
+	github.com/jolibrain/godd v0.0.0-20190702095257-ae5a168df98f
 	github.com/korandiz/v4l v0.0.0-20180520170035-995f703bfc89
 	github.com/magiconair/properties v1.8.1 // indirect
+	github.com/marpie/go-mjpeg v0.0.0-20170224190618-6ffaae5402e3
 	github.com/mitchellh/mapstructure v1.1.2 // indirect
 	github.com/mudler/gluedd v0.0.0-20190806155527-5ec47c26aaad
 	github.com/nfnt/resize v0.0.0-20180221191011-83c6a9932646
+	github.com/oliamb/cutter v0.2.2
 	github.com/pelletier/go-toml v1.4.0 // indirect
 	github.com/pixiv/go-libjpeg v0.0.0-20161111043336-c49be700eba7
 	github.com/sahilm/fuzzy v0.1.0
