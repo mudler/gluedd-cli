@@ -24,34 +24,21 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/mudler/gluedd/pkg/api"
 	"github.com/mudler/gluedd/pkg/errand"
 	"github.com/mudler/gluedd/pkg/predictor"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
 
-var webcamCmd = &cobra.Command{
-	Use:   "webcam",
-	Short: "Starts gluedd in listen mode",
+var yoloWebcamCmdOpenCV = &cobra.Command{
+	Use:   "webcam-yolo-cv",
+	Short: "Uses Yolo http api to process data",
 	Long:  `Starts gluedd with the configuration`,
 	Run: func(cmd *cobra.Command, args []string) {
-		Service := viper.GetString("service")
 
 		Server := viper.GetString("api_server")
 
-		dd := api.NewDeepDetect(Server, &api.Options{
-			Width:      viper.GetInt("webcam_width"),
-			Height:     viper.GetInt("webcam_height"),
-			Detection:  true,
-			Confidence: viper.GetFloat64("confidence"),
-		})
-		if len(Service) > 0 {
-			dd.WithService(Service)
-		}
-		if len(args) == 0 {
-			log.Fatalln("Insufficient arguments")
-		}
+		dd := &generators.YoloCV{Server: Server}
 
 		deviceID, err := strconv.Atoi(args[0])
 		if err != nil {
@@ -82,5 +69,5 @@ var webcamCmd = &cobra.Command{
 }
 
 func init() {
-	RootCmd.AddCommand(webcamCmd)
+	RootCmd.AddCommand(yoloWebcamCmdOpenCV)
 }

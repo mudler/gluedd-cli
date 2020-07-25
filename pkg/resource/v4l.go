@@ -19,12 +19,14 @@ import (
 	"bytes"
 	"encoding/base64"
 	"fmt"
+	"image"
 	"os"
 	"strconv"
 
 	"github.com/korandiz/v4l"
 	"github.com/korandiz/v4l/fmt/mjpeg"
 	"github.com/mudler/gluedd/pkg/resource"
+	"github.com/nfnt/resize"
 	jpeg "github.com/pixiv/go-libjpeg/jpeg"
 	live "github.com/saljam/mjpeg"
 
@@ -32,11 +34,13 @@ import (
 )
 
 type V4lStreamerOptions struct {
-	Device        int
-	StreamURL     string
-	Width, Height int
-	Stream        *live.Stream
-	Buffer        int
+	Device         int
+	StreamURL      string
+	Width, Height  int
+	Stream         *live.Stream
+	Resize, Approx bool
+
+	Buffer int
 }
 
 func NewV4lStreamer(opts *V4lStreamerOptions) resource.Resource {
@@ -125,12 +129,25 @@ func (l *V4lStreamer) Listen() chan string {
 				os.Exit(1)
 			}
 
+			var resizedImage image.Image
+			if l.Options.Resize {
+				if l.Options.Approx {
+					resizedImage = resize.Thumbnail(uint(l.Options.Width), uint(l.Options.Height), img, resize.Lanczos3)
+				} else {
+					resizedImage = resize.Resize(uint(l.Options.Width), uint(l.Options.Height), img, resize.Lanczos3)
+				}
+			}
+
 			// Encode as base64
 			buffer64 := new(bytes.Buffer)
-			err = jpeg.Encode(buffer64, img, &jpeg.EncoderOptions{Quality: 100})
+			if l.Options.Resize {
+				err = jpeg.Encode(buffer64, resizedImage, &jpeg.EncoderOptions{Quality: 100})
+			} else {
+				err = jpeg.Encode(buffer64, img, &jpeg.EncoderOptions{Quality: 100})
+			}
 			if err != nil {
 				fmt.Println("Error encoding image to base64: " + err.Error())
-				os.Exit(1)
+				continue
 			}
 			imageBase64 := base64.StdEncoding.EncodeToString(buffer64.Bytes())
 
