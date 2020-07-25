@@ -1,0 +1,114 @@
+# github.com/CorentinB/gobbox v0.0.0-20181128125648-ea6d89695a09
+## explicit
+github.com/CorentinB/gobbox
+# github.com/fsnotify/fsnotify v1.4.7
+## explicit
+github.com/fsnotify/fsnotify
+# github.com/go-macaron/inject v0.0.0-20160627170012-d8a0b8677191
+## explicit
+github.com/go-macaron/inject
+# github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0
+## explicit
+github.com/golang/freetype/raster
+github.com/golang/freetype/truetype
+# github.com/hashicorp/hcl v1.0.0
+## explicit
+github.com/hashicorp/hcl
+github.com/hashicorp/hcl/hcl/ast
+github.com/hashicorp/hcl/hcl/parser
+github.com/hashicorp/hcl/hcl/printer
+github.com/hashicorp/hcl/hcl/scanner
+github.com/hashicorp/hcl/hcl/strconv
+github.com/hashicorp/hcl/hcl/token
+github.com/hashicorp/hcl/json/parser
+github.com/hashicorp/hcl/json/scanner
+github.com/hashicorp/hcl/json/token
+# github.com/inconshreveable/mousetrap v1.0.0
+## explicit
+github.com/inconshreveable/mousetrap
+# github.com/jolibrain/godd v0.0.0-20190702095257-ae5a168df98f
+## explicit
+github.com/jolibrain/godd
+# github.com/korandiz/v4l v0.0.0-20180520170035-995f703bfc89
+## explicit
+github.com/korandiz/v4l
+github.com/korandiz/v4l/fmt/mjpeg
+# github.com/magiconair/properties v1.8.1
+## explicit
+github.com/magiconair/properties
+# github.com/marpie/go-mjpeg v0.0.0-20170224190618-6ffaae5402e3
+## explicit
+github.com/marpie/go-mjpeg
+# github.com/mitchellh/mapstructure v1.1.2
+## explicit
+github.com/mitchellh/mapstructure
+# github.com/mudler/gluedd v0.0.0-20190806155527-5ec47c26aaad
+## explicit
+github.com/mudler/gluedd/pkg/api
+github.com/mudler/gluedd/pkg/errand
+github.com/mudler/gluedd/pkg/predictor
+github.com/mudler/gluedd/pkg/resource
+# github.com/nfnt/resize v0.0.0-20180221191011-83c6a9932646
+## explicit
+github.com/nfnt/resize
+# github.com/oliamb/cutter v0.2.2
+## explicit
+github.com/oliamb/cutter
+# github.com/pelletier/go-toml v1.4.0
+## explicit
+github.com/pelletier/go-toml
+# github.com/pixiv/go-libjpeg v0.0.0-20161111043336-c49be700eba7
+## explicit
+github.com/pixiv/go-libjpeg/jpeg
+github.com/pixiv/go-libjpeg/rgb
+# github.com/sahilm/fuzzy v0.1.0
+## explicit
+github.com/sahilm/fuzzy
+# github.com/saljam/mjpeg v0.0.0-20180803045301-9c13c8154926
+## explicit
+github.com/saljam/mjpeg
+# github.com/spf13/afero v1.2.2
+## explicit
+github.com/spf13/afero
+github.com/spf13/afero/mem
+# github.com/spf13/cast v1.3.0
+## explicit
+github.com/spf13/cast
+# github.com/spf13/cobra v0.0.5
+## explicit
+github.com/spf13/cobra
+# github.com/spf13/jwalterweatherman v1.1.0
+## explicit
+github.com/spf13/jwalterweatherman
+# github.com/spf13/pflag v1.0.3
+## explicit
+github.com/spf13/pflag
+# github.com/spf13/viper v1.4.0
+## explicit
+github.com/spf13/viper
+# github.com/unknwon/com v0.0.0-20190804042917-757f69c95f3e
+github.com/unknwon/com
+# golang.org/x/crypto v0.0.0-20190701094942-4def268fd1a4
+## explicit
+golang.org/x/crypto/pbkdf2
+# golang.org/x/image v0.0.0-20190802002840-cff245a6509b
+## explicit
+golang.org/x/image/font
+golang.org/x/image/font/gofont/gomono
+golang.org/x/image/math/fixed
+# golang.org/x/sys v0.0.0-20190804053845-51ab0e2deafa
+## explicit
+golang.org/x/sys/unix
+# golang.org/x/text v0.3.2
+## explicit
+golang.org/x/text/transform
+golang.org/x/text/unicode/norm
+# gopkg.in/ini.v1 v1.46.0
+## explicit
+gopkg.in/ini.v1
+# gopkg.in/macaron.v1 v1.3.4
+## explicit
+gopkg.in/macaron.v1
+# gopkg.in/yaml.v2 v2.2.2
+## explicit
+gopkg.in/yaml.v2

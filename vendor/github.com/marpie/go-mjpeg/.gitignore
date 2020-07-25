@@ -1,0 +1,8 @@
+*.bak
+*.out
+*.6
+*.swp
+_obj/
+_test/
+_testmain.go
+*.prof
